@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from collections import defaultdict
 import sys
 import re
 
@@ -8,7 +9,7 @@ N = int(args.pop(0))
 RE_VALID_WORD = re.compile(r'^[a-z]{1,%s}$' % N)
 RE_REPEATED_LETTER = re.compile(r'^.*(?P<letter>.)(?P=letter)')
 
-words = dict((chr(ord('a')+i), set()) for i in xrange(26))
+words = defaultdict(set)
 
 for word in file(args.pop(0)) if args else sys.stdin:
   word = word.rstrip('\n')
