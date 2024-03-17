@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from collections import defaultdict
 import sys
@@ -12,7 +12,7 @@ RE_REPEATED_LETTER = re.compile(r'^.*(?P<letter>.)(?P=letter)')
 freqs = defaultdict(lambda: 0)
 words = []
 
-for word in file(args.pop(0)) if args else sys.stdin:
+for word in open(args.pop(0)) if args else sys.stdin:
   word = word.rstrip('\n')
   if not RE_VALID_WORD.match(word):
     continue
@@ -24,8 +24,8 @@ for word in file(args.pop(0)) if args else sys.stdin:
 
 tiles = set(sorted(freqs.keys(), key=lambda c: freqs[c])[-N:])
 
-print ','.join(sorted(tiles))
+print(','.join(sorted(tiles)))
 
 for word in words:
   if not set(list(word)).difference(tiles):
-    print word
+    print(word)

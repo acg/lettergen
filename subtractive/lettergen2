@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from collections import defaultdict
 import sys
@@ -11,7 +11,7 @@ RE_REPEATED_PAIR = re.compile(r'^(..)*(?P<letter1>.)(?P<letter2>.)(?P=letter1)(?
 
 words = defaultdict(set)
 
-for word in file(args.pop(0)) if args else sys.stdin:
+for word in open(args.pop(0)) if args else sys.stdin:
   word = word.rstrip('\n')
   if not RE_VALID_WORD.match(word):
     continue
@@ -27,7 +27,7 @@ while len(words) > N:
   abandoned_words = words.pop(pair)
   words = dict((pair, words.difference(abandoned_words)) for pair, words in words.items())
 
-print ','.join(sorted(words.keys()))
+print(','.join(sorted(words.keys())))
 
 for word in sorted(set().union(*words.values())):
-  print word
+  print(word)

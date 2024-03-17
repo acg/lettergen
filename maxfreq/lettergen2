@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from collections import defaultdict
 import sys
@@ -12,7 +12,7 @@ RE_REPEATED_PAIR = re.compile(r'^(..)*(?P<letter1>.)(?P<letter2>.)(?P=letter1)(?
 freqs = defaultdict(lambda: 0)
 words = []
 
-for word in file(args.pop(0)) if args else sys.stdin:
+for word in open(args.pop(0)) if args else sys.stdin:
   word = word.rstrip('\n')
   if not RE_VALID_WORD.match(word):
     continue
@@ -26,9 +26,9 @@ for word in file(args.pop(0)) if args else sys.stdin:
 
 tiles = set(sorted(freqs.keys(), key=lambda c: freqs[c])[-N:])
 
-print ','.join(sorted(tiles))
+print(','.join(sorted(tiles)))
 
 for word in words:
   pairs = [pair for i, pair in enumerate(re.split(r'(..)', word)) if i % 2]
   if not set(pairs).difference(tiles):
-    print word
+    print(word)
