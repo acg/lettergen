@@ -5,8 +5,8 @@ import sys
 import re
 
 args = sys.argv[1:]
-N = int(args.pop(0))
-RE_VALID_WORD = re.compile(r'^([a-z][a-z]){1,%s}$' % N)
+NTILES = int(args.pop(0))
+RE_VALID_WORD = re.compile(r'^([a-z][a-z]){1,%s}$' % NTILES)
 RE_REPEATED_PAIR = re.compile(r'^(..)*(?P<letter1>.)(?P<letter2>.)(?P=letter1)(?P=letter2)')
 
 freqs = defaultdict(lambda: 0)
@@ -14,21 +14,30 @@ words = []
 
 for word in open(args.pop(0)) if args else sys.stdin:
   word = word.rstrip('\n')
+
+  # discard words with odd letter counts, capitals, apostrophes, etc.
   if not RE_VALID_WORD.match(word):
     continue
-  pairs = [pair for i, pair in enumerate(re.split(r'(..)', word)) if i % 2]
-  sorted_word = ''.join(sorted(pairs))
-  if RE_REPEATED_PAIR.match(sorted_word):
+
+  # split the word into letter pairs.
+  pairs = re.findall(r'.{2}', word)
+
+  # discard words with repeated pairs.
+  if RE_REPEATED_PAIR.match(''.join(sorted(pairs))):
     continue
+
+  # add to valid word list. update letter pair statistics.
+  words.append(word)
   for pair in pairs:
     freqs[pair] += 1
-  words.append(word)
 
-tiles = set(sorted(freqs.keys(), key=lambda c: freqs[c])[-N:])
+# our tileset is the top N most frequently occurring pairs.
+tileset = set(sorted(freqs.keys(), key=lambda pair: freqs[pair])[-NTILES:])
 
-print(','.join(sorted(tiles)))
+# report the tileset.
+print(','.join(sorted(tileset)))
 
+# report all generatable dictionary words.
 for word in words:
-  pairs = [pair for i, pair in enumerate(re.split(r'(..)', word)) if i % 2]
-  if not set(pairs).difference(tiles):
+  if not set(re.findall(r'.{2}', word)).difference(tileset):
     print(word)

@@ -5,29 +5,40 @@ import sys
 import re
 
 args = sys.argv[1:]
-N = int(args.pop(0))
-RE_VALID_WORD = re.compile(r'^([a-z][a-z]){1,%s}$' % N)
+NTILES = int(args.pop(0))
+RE_VALID_WORD = re.compile(r'^([a-z][a-z]){1,%s}$' % NTILES)
 RE_REPEATED_PAIR = re.compile(r'^(..)*(?P<letter1>.)(?P<letter2>.)(?P=letter1)(?P=letter2)')
 
 words = defaultdict(set)
 
 for word in open(args.pop(0)) if args else sys.stdin:
   word = word.rstrip('\n')
+
+  # discard words with odd letter counts, capitals, apostrophes, etc.
   if not RE_VALID_WORD.match(word):
     continue
-  pairs = [pair for i, pair in enumerate(re.split(r'(..)', word)) if i % 2]
-  sorted_word = ''.join(sorted(pairs))
-  if RE_REPEATED_PAIR.match(sorted_word):
+
+  # split the word into letter pairs.
+  pairs = re.findall(r'.{2}', word)
+
+  # discard words with repeated pairs.
+  if RE_REPEATED_PAIR.match(''.join(sorted(pairs))):
     continue
+
+  # add the word to a separate set for each of its letter pairs.
   for pair in pairs:
     words[pair].add(word)
 
-while len(words) > N:
-  pair = min(words.keys(), key=lambda pair: len(words[pair]))
-  abandoned_words = words.pop(pair)
-  words = dict((pair, words.difference(abandoned_words)) for pair, words in words.items())
+# work backwards from 676 to NTILES.
+# remove the letter pair that causes the least damage at every step.
+while len(words) > NTILES:
+  least_damaging_pair = min(words.keys(), key=lambda pair: len(words[pair]))
+  lost_words = words.pop(least_damaging_pair)
+  words = dict((pair, words.difference(lost_words)) for pair, words in words.items())
 
+# report the tileset.
 print(','.join(sorted(words.keys())))
 
+# report all generatable dictionary words.
 for word in sorted(set().union(*words.values())):
   print(word)
