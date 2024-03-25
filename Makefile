@@ -9,15 +9,15 @@ RESULTS  := $(sort $(RESULTS1) $(RESULTS2))
 
 report : $(RESULTS)
 	@ echo
-	@ echo '## Results'
-	@ echo
-	@ echo $^ | xargs -n1 sh -ec 'printf "%s: %s (%s words)\n" $$1 `head -1 $$1` `tail -n +2 $$1 | wc -l`' --
+	@ echo $^ | xargs -n1 sh -ec 'printf "%s: %s words\n%s\n\n" $$1 `tail -n +2 $$1 | wc -l` `head -1 $$1`' --
 
 %/results1 : %/lettergen1 $(DICT)
-	$< $(NTILES) $(DICT) > $@
+	@ echo running "$@" ...
+	@ $< $(NTILES) $(DICT) > $@
 
 %/results2 : %/lettergen2 $(DICT)
-	$< $(NTILES) $(DICT) > $@
+	@ echo running "$@" ...
+	@ $< $(NTILES) $(DICT) > $@
 
 clean :
 	rm -f $(RESULTS)
