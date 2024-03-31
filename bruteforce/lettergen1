@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+
+from collections import defaultdict
+import sys
+import re
+
+
+def main():
+  args = sys.argv[1:]
+  N = int(args.pop(0))
+  RE_VALID_WORD = re.compile(r'^[a-z]{1,%s}$' % N)
+  RE_REPEATED_LETTER = re.compile(r'^.*(?P<letter>.)(?P=letter)')
+
+  wordsets = defaultdict(set)
+
+  for word in open(args.pop(0)) if args else sys.stdin:
+    word = word.rstrip('\n')
+    if not RE_VALID_WORD.match(word):
+      continue
+    if RE_REPEATED_LETTER.match(''.join(sorted(word))):
+      continue
+    for c in word:
+      wordsets[c].add(word)
+
+  tileset, count = best_tileset(wordsets, N)
+  unused = ''.join(sorted(set(wordsets.keys()).difference(tileset)))
+  wordsets = ejected(wordsets, unused)
+
+  print(','.join(sorted(tileset)))
+
+  for word in sorted(formable_words(wordsets)):
+    print(word)
+
+
+def best_tileset(wordsets, n, tileset=None):
+  tileset = tileset or set()
+
+  if len(tileset) > n:
+    return set(), 0
+
+  choices = ''.join(sorted(set(wordsets.keys()).difference(tileset)))
+
+  if len(tileset) == n:
+    count = len(formable_words(ejected(wordsets, choices)))
+    return tileset, count
+
+  if not choices:
+    return set(), 0
+
+  letter = choices[0]
+  tileset1, count1 = best_tileset(wordsets, n, tileset=tileset.union(set([letter])))
+  tileset2, count2 = best_tileset(ejected(wordsets, letter), n, tileset=tileset)
+
+  return (tileset1, count1) if count1 > count2 else (tileset2, count2)
+
+
+def ejected(wordsets, letters):
+  wordsets = wordsets.copy()
+
+  while letters:
+    letter, letters = letters[0], letters[1:]
+    lost_words = wordsets.pop(letter)
+    wordsets = dict((c, words.difference(lost_words)) for c, words in wordsets.items())
+
+  return wordsets
+
+
+def formable_words(wordsets):
+  return set().union(*wordsets.values())
+
+
+main()
