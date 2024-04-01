@@ -1,8 +1,8 @@
 DICT   ?= /usr/share/dict/words
 NTILES ?= 20
 
-SCRIPTS1 := $(wildcard */lettergen1)
-SCRIPTS2 := $(wildcard */lettergen2)
+SCRIPTS1 := $(filter-out bruteforce/%,$(wildcard */lettergen1))
+SCRIPTS2 := $(filter-out bruteforce/%,$(wildcard */lettergen2))
 RESULTS1 := $(SCRIPTS1:%/lettergen1=%/results1)
 RESULTS2 := $(SCRIPTS2:%/lettergen2=%/results2)
 RESULTS  := $(sort $(RESULTS1) $(RESULTS2))
