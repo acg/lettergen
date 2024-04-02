@@ -44,6 +44,11 @@ def best_tileset(wordsets, n, tileset=None):
     count = len(formable_words(ejected(wordsets, choices)))
     return tileset, count
 
+  if len(tileset) + len(choices) == n:
+    tileset = tileset.union(set(list(choices)))
+    count = len(formable_words(wordsets))
+    return tileset, count
+
   if not choices:
     return set(), 0
 
