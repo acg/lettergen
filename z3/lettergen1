@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+
+import sys
+import re
+import z3
+
+args = sys.argv[1:]
+NTILES = int(args.pop(0))
+RE_VALID_WORD = re.compile(r'^[a-z]{1,%s}$' % NTILES)
+RE_REPEATED_LETTER = re.compile(r'^.*(?P<letter>.)(?P=letter)')
+
+alphabet = set()
+sum_me = []
+words = [] # all words, only used for reporting back at the end
+
+for word in open(args.pop(0)) if args else sys.stdin:
+  word = word.rstrip('\n')
+  if not RE_VALID_WORD.match(word):
+    continue
+  if RE_REPEATED_LETTER.match(''.join(sorted(word))):
+    continue
+  alphabet.update(set(list(word)))
+  sum_me.append(z3.If(z3.And(list(z3.Bool(c) for c in word)),z3.RealVal(1),z3.RealVal(0)))
+  words.append(word)
+
+solver = z3.Optimize()
+solver.add(z3.PbEq(list((z3.Bool(c),1) for c in alphabet),NTILES))
+res = solver.maximize(z3.Sum(sum_me))
+solver.check()
+model = solver.model()
+
+# report the tileset.
+print(','.join(c for c in alphabet if model[z3.Bool(c)]))
+
+# report all formable dictionary words.
+for word in words:
+  if all(model[z3.Bool(c)] for c in word):
+    print(word)
