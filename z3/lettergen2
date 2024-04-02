@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+
+import sys
+import re
+import z3
+
+args = sys.argv[1:]
+NTILES = int(args.pop(0))
+RE_VALID_WORD = re.compile(r'^([a-z][a-z]){1,%s}$' % NTILES)
+RE_REPEATED_PAIR = re.compile(r'''
+  ^(..)*
+  (?P<letter1>.)(?P<letter2>.)(..)*
+  (?P=letter1)(?P=letter2)
+''', re.X)
+allpairs = set()
+sum_me = []
+words = [] # all words, only used for reporting back at the end
+for word in open(args.pop(0)) if args else sys.stdin:
+  word = word.rstrip('\n')
+  # discard words with odd length, capitals, apostrophes.
+  if not RE_VALID_WORD.match(word):
+    continue
+
+  # split the word into letter pairs.
+  pairs = re.findall(r'.{2}', word)
+  # discard words with repeated pairs.
+  if RE_REPEATED_PAIR.match(''.join(sorted(pairs))):
+    continue
+
+  allpairs.update(pairs)
+  sum_me.append(z3.If(z3.And(list(z3.Bool(pair) for pair in pairs)),z3.RealVal(1),z3.RealVal(0)))
+  words.append(word)
+
+solver = z3.Optimize()
+solver.set("timeout", 50000) # 50 seconds, remove this line to wait for an optimal solution
+solver.add(z3.PbEq(list((z3.Bool(pair),1) for pair in allpairs),NTILES))
+res = solver.maximize(z3.Sum(sum_me))
+solver.check()
+model = solver.model()
+# report the tileset.
+print(','.join(pair for pair in allpairs if model[z3.Bool(pair)]))
+
+# report all formable dictionary words.
+for word in words:
+  pairs = re.findall(r'.{2}', word)
+  if all(model[z3.Bool(pair)] for pair in pairs):
+    print(word)
+
